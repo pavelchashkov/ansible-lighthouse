@@ -1,2 +1,14 @@
 ---
-# handlers file for ansible-lighthouse
+- name: start-nginx
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: reload-nginx
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  ignore_errors: "{{ ansible_check_mode }}"

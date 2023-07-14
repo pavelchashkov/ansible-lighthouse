@@ -1,2 +1,39 @@
 ---
-# tasks file for ansible-lighthouse
+- name: LightHouse | Install dependencies (git)
+  become: true
+  ansible.builtin.yum:
+    name: git
+    state: latest
+- name: LightHouse | Install dependencies (epel-release)
+  become: true
+  ansible.builtin.yum:
+    name: epel-release
+    state: present
+- name: LightHouse | Install dependencies (nginx)
+  become: true
+  ansible.builtin.yum:
+    name: nginx
+    state: latest
+  ignore_errors: "{{ ansible_check_mode }}"
+  notify: start-nginx
+- name: LightHouse | Nginx template config
+  become: true
+  ansible.builtin.template:
+    src: "templates/nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+    mode: "755"
+  notify: start-nginx
+- name: LightHouse | Copy from git
+  become: true
+  git:
+    repo: "{{ lighthouse_git_repo }}"
+    version: master
+    dest: "{{ lighthouse_location_dir }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+- name: LightHouse | Create config
+  become: true
+  ansible.builtin.template:
+    src: "templates/lighthouse.conf.j2"
+    dest: "/etc/nginx/conf.d/lighthouse.conf"
+    mode: "755"
+  notify: reload-nginx
